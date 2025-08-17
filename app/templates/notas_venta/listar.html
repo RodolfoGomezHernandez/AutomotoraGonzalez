@@ -20,11 +20,47 @@
                         <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
                     </select>
                 </form>
-                
-                <!-- FORMULARIO DE BÚSQUEDA EN TIEMPO REAL -->
-                <form method="get" class="d-flex w-50" id="search-form">
-                    <input type="text" name="q" id="search-input" class="form-control" placeholder="Buscar en tiempo real..." value="{{ search_query or '' }}">
+                 <!-- FORMULARIO DE BÚSQUEDA MEJORADO -->
+                <form method="get" class="d-flex w-50">
+                    <select name="search_field" class="form-select me-2" style="width: auto;">
+                        <option value="todos" {% if search_field == 'todos' %}selected{% endif %}>Todos</option>
+                        <option value="folio" {% if search_field == 'folio' %}selected{% endif %}>Folio</option>
+                        <option value="cliente" {% if search_field == 'cliente' %}selected{% endif %}>Cliente</option>
+                        <option value="vehiculo" {% if search_field == 'vehiculo' %}selected{% endif %}>Vehículo</option>
+                        <option value="estado" {% if search_field == 'estado' %}selected{% endif %}>Estado</option>
+                    </select>
+                    <input type="text" name="q" class="form-control me-2" placeholder="Buscar..." value="{{ search_query or '' }}">
+                    <button type="submit" class="btn btn-outline-secondary">Buscar</button>
                 </form>
+                <!-- ... (código de la tabla) ... -->
+                    {% if notas.pages > 1 %}
+                    <nav class="mt-3">
+                    <ul class="pagination justify-content-center">
+                        <!-- PAGINACIÓN ACTUALIZADA CON NUEVOS PARÁMETROS -->
+                        <li class="page-item {% if not notas.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.listar_notas_venta', page=notas.prev_num, per_page=per_page, q=search_query, search_field=search_field) if notas.has_prev else '#' }}">Anterior</a>
+                        </li>
+                        {% for page_num in notas.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                            {% if page_num %}
+                                <li class="page-item {% if notas.page == page_num %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('main.listar_notas_venta', page=page_num, per_page=per_page, q=search_query, search_field=search_field) }}">{{ page_num }}</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">…</span></li>
+                            {% endif %}
+                        {% endfor %}
+                        <li class="page-item {% if not notas.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.listar_notas_venta', page=notas.next_num, per_page=per_page, q=search_query, search_field=search_field) if notas.has_next else '#' }}">Siguiente</a>
+                        </li>
+                    </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+
+            </div>
+                
+             
             </div>
 
             <div class="table-responsive">
@@ -115,17 +151,11 @@
         </div>
     </div>
 
-    <!-- SCRIPT PARA BÚSQUEDA EN TIEMPO REAL -->
-    <script>
-        let searchTimeout;
-        const searchInput = document.getElementById('search-input');
-        const searchForm = document.getElementById('search-form');
 
-        searchInput.addEventListener('keyup', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                searchForm.submit();
-            }, 5000); // Espera 500ms después de que el usuario deja de escribir
-        });
-    </script>
+
+
+
 {% endblock %}
+
+
+

@@ -9,6 +9,7 @@ import datetime
 
 from .models import NotaVenta, Cliente, Vehiculo, Pago
 from .forms import NotaVentaForm
+from .forms import ClienteForm, VehiculoForm
 
 bp = Blueprint('main', __name__)
 
@@ -17,9 +18,56 @@ bp = Blueprint('main', __name__)
 @login_required
 def index():
     return render_template('index.html', title='Inicio')
+
 @bp.route('/notas-venta')
 @login_required
 def listar_notas_venta():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    # Nuevos parámetros de búsqueda
+    search_field = request.args.get('search_field', 'todos')
+    search_query = request.args.get('q', '', type=str)
+
+    if per_page not in [20, 30, 50]:
+        per_page = 20
+    
+    query = NotaVenta.query.join(Cliente).join(Vehiculo)
+
+    if search_query:
+        search_term = f"%{search_query}%"
+        
+        if search_field == 'folio':
+            query = query.filter(cast(NotaVenta.id, String).like(search_term))
+        elif search_field == 'cliente':
+            query = query.filter(or_(Cliente.nombre.like(search_term), Cliente.apellido.like(search_term), Cliente.rut.like(search_term)))
+        elif search_field == 'vehiculo':
+            query = query.filter(or_(Vehiculo.marca.like(search_term), Vehiculo.modelo.like(search_term), Vehiculo.patente.like(search_term)))
+        elif search_field == 'estado':
+            query = query.filter(NotaVenta.estado.like(search_term))
+        else: # Búsqueda en todos los campos
+            query = query.filter(or_(
+                cast(NotaVenta.id, String).like(search_term),
+                Cliente.nombre.like(search_term),
+                Cliente.apellido.like(search_term),
+                Cliente.rut.like(search_term),
+                Vehiculo.marca.like(search_term),
+                Vehiculo.modelo.like(search_term),
+                Vehiculo.patente.like(search_term),
+                NotaVenta.estado.like(search_term)
+            ))
+
+    notas_venta = query.order_by(NotaVenta.fecha_venta.desc()).paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    return render_template(
+        'notas_venta/listar.html',
+        title='Notas de Venta',
+        notas=notas_venta,
+        per_page=per_page,
+        search_query=search_query,
+        search_field=search_field
+    )
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     search_query = request.args.get('q', '', type=str)
@@ -255,3 +303,45 @@ def generar_pdf(id):
     response.headers['Content-Disposition'] = f'inline; filename=nota_venta_{nota.id}.pdf'
     
     return response
+
+@bp.route('/clientes/crear', methods=['GET', 'POST'])
+@login_required
+def crear_cliente():
+    form = ClienteForm()
+    if form.validate_on_submit():
+        cliente = Cliente(
+            rut=form.rut.data,
+            nombre=form.nombre.data,
+            apellido=form.apellido.data,
+            telefono=form.telefono.data,
+            direccion=form.direccion.data,
+            ciudad=form.ciudad.data
+        )
+        db.session.add(cliente)
+        db.session.commit()
+        flash('Cliente añadido con éxito.', 'success')
+        return redirect(url_for('main.index'))
+    return render_template('crear_editar_simple.html', title='Añadir Nuevo Cliente', form=form)
+
+@bp.route('/vehiculos/crear', methods=['GET', 'POST'])
+@login_required
+def crear_vehiculo():
+    form = VehiculoForm()
+    if form.validate_on_submit():
+        vehiculo = Vehiculo(
+            patente=form.patente.data,
+            marca=form.marca.data,
+            modelo=form.modelo.data,
+            ano=form.ano.data,
+            color=form.color.data,
+            chasis_n=form.chasis_n.data,
+            motor_n=form.motor_n.data,
+            valor=form.valor.data,
+            descripcion=form.descripcion.data
+        )
+        db.session.add(vehiculo)
+        db.session.commit()
+        flash('Vehículo añadido con éxito.', 'success')
+        return redirect(url_for('main.index'))
+    return render_template('crear_editar_simple.html', title='Añadir Nuevo Vehículo', form=form)
+

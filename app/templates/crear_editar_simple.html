@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block content %}
+    <h2>{{ title }}</h2>
+    <hr>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    {% for field in form if field.widget.input_type != 'hidden' and field.type != 'SubmitField' %}
+                    <div class="col-md-6">
+                        {{ render_field(field) }}
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-4">
+                    {{ form.submit(class='btn btn-primary') }}
+                    <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

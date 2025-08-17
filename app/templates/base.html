@@ -11,7 +11,6 @@
 <body>
     <div class="d-flex">
         {% if current_user.is_authenticated %}
-        <!-- Sidebar -->
         <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary vh-100 position-fixed" style="width: 280px;">
             <a href="{{ url_for('main.index') }}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
                 <i class="bi bi-car-front-fill me-2 fs-4"></i>
@@ -35,6 +34,26 @@
                         </ul>
                     </div>
                 </li>
+                <li>
+                    <a href="#clientes-collapse" class="nav-link link-body-emphasis dropdown-toggle" data-bs-toggle="collapse" aria-expanded="false">
+                        <i class="bi bi-person-plus me-2"></i> Clientes
+                    </a>
+                    <div class="collapse" id="clientes-collapse">
+                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ms-4">
+                            <li><a href="{{ url_for('main.crear_cliente') }}" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Añadir</a></li>
+                        </ul>
+                    </div>
+                </li>
+                <li>
+                    <a href="#vehiculos-collapse" class="nav-link link-body-emphasis dropdown-toggle" data-bs-toggle="collapse" aria-expanded="false">
+                        <i class="bi bi-truck me-2"></i> Vehículos
+                    </a>
+                    <div class="collapse" id="vehiculos-collapse">
+                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ms-4">
+                            <li><a href="{{ url_for('main.crear_vehiculo') }}" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Añadir</a></li>
+                        </ul>
+                    </div>
+                </li>
             </ul>
             <hr>
             <div class="dropdown">
@@ -49,7 +68,6 @@
         </div>
         {% endif %}
 
-        <!-- Main Content -->
         <main class="container-fluid p-4 {% if current_user.is_authenticated %}main-content{% endif %}">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
