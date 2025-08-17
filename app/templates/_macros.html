@@ -1,0 +1,23 @@
+{% macro render_field(field, type='text', rows=3, placeholder='') %}
+<div class="mb-3">
+    {{ field.label(class="form-label") }}
+    {% set field_class = 'form-control' %}
+    {% if field.errors %}
+        {% set field_class = field_class + ' is-invalid' %}
+    {% endif %}
+
+    {% if field.type == 'TextAreaField' %}
+        {{ field(class=field_class, rows=rows, placeholder=placeholder, **kwargs) }}
+    {% elif field.type == 'SelectField' %}
+        {{ field(class='form-select', **kwargs) }}
+    {% else %}
+        {{ field(class=field_class, type=type, placeholder=placeholder, **kwargs) }}
+    {% endif %}
+    
+    {% for error in field.errors %}
+    <div class="invalid-feedback">
+        {{ error }}
+    </div>
+    {% endfor %}
+</div>
+{% endmacro %}

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nota de Venta - Folio {{ nota.id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+        .container {
+            width: 90%;
+            margin: auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .header img {
+            max-width: 80px;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .details-section {
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .details-section h3 {
+            margin-top: 0;
+            font-size: 16px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .details-section p {
+            margin: 5px 0;
+        }
+        .total-section {
+            text-align: right;
+            margin-top: 30px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 10px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <!-- La ruta a la imagen debe ser absoluta para que FPDF la encuentre -->
+            <img src="{{ logo_path }}" alt="Logo">
+            <h1>Nota de Venta</h1>
+            <p>Folio: #{{ nota.id }} | Fecha: {{ nota.fecha_venta.strftime('%d-%m-%Y') }}</p>
+        </div>
+
+        <div class="details-grid">
+            <div class="details-section">
+                <h3>Datos del Cliente</h3>
+                <p><strong>Nombre:</strong> {{ nota.cliente.nombre }} {{ nota.cliente.apellido }}</p>
+                <p><strong>RUT:</strong> {{ nota.cliente.rut }}</p>
+                <p><strong>Teléfono:</strong> {{ nota.cliente.telefono }}</p>
+                <p><strong>Dirección:</strong> {{ nota.cliente.direccion }}, {{ nota.cliente.ciudad }}</p>
+            </div>
+            <div class="details-section">
+                <h3>Datos del Vendedor</h3>
+                <p><strong>Nombre:</strong> {{ nota.vendedor.name }}</p>
+                <p><strong>Email:</strong> {{ nota.vendedor.email }}</p>
+            </div>
+        </div>
+
+        <div class="details-section">
+            <h3>Detalles del Vehículo</h3>
+            <p><strong>Patente:</strong> {{ nota.vehiculo.patente }}</p>
+            <p><strong>Marca / Modelo:</strong> {{ nota.vehiculo.marca }} / {{ nota.vehiculo.modelo }}</p>
+            <p><strong>Año:</strong> {{ nota.vehiculo.ano }}</p>
+            <p><strong>N° Chasis:</strong> {{ nota.vehiculo.chasis_n }}</p>
+            <p><strong>N° Motor:</strong> {{ nota.vehiculo.motor_n }}</p>
+        </div>
+        
+        <div class="details-section">
+            <h3>Condiciones de Pago</h3>
+            <p><strong>Método de Pago:</strong> {{ nota.pago.metodo_pago|capitalize }}</p>
+            <p><strong>Observaciones:</strong> {{ nota.observaciones or 'Sin observaciones.' }}</p>
+        </div>
+
+        <div class="total-section">
+            Monto Final: ${{ "{:,.0f}".format(nota.monto_final).replace(',', '.') }}
+        </div>
+
+        <div class="footer">
+            <p>Automotora Gonzalez | Gracias por su compra.</p>
+        </div>
+    </div>
+</body>
+</html>

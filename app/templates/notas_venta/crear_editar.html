@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import render_field %}
+
+{% block content %}
+    <h2>{{ title }}</h2>
+    <hr>
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        {{ render_field(form.cliente_rut, placeholder="Ej: 12345678-9") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.vehiculo_patente, placeholder="Ej: ABCD12") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.fecha_venta, type="date") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.monto_final, type="number") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ render_field(form.metodo_pago) }}
+                    </div>
+                     <div class="col-md-6">
+                        {{ render_field(form.estado) }}
+                    </div>
+                    <div class="col-12">
+                        {{ render_field(form.observaciones, rows=3) }}
+                    </div>
+                </div>
+                <div class="mt-4">
+                    {{ form.submit(class='btn btn-primary') }}
+                    <a href="{{ url_for('main.listar_notas_venta') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

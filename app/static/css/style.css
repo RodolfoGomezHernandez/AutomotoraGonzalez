@@ -1,0 +1,16 @@
+/* Empuja el contenido principal para que no quede debajo del sidebar */
+.main-content {
+    margin-left: 280px;
+}
+
+/* Estilos para el menú desplegable del sidebar */
+.btn-toggle-nav a {
+    padding: .25rem 1rem;
+    margin-top: .125rem;
+    margin-left: 1.25rem;
+    border-radius: .25rem;
+}
+
+.btn-toggle-nav a:hover {
+    background-color: rgba(var(--bs-emphasis-color-rgb), 0.1);
+}

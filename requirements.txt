@@ -1,0 +1,11 @@
+Flask
+Flask-SQLAlchemy
+Flask-Migrate
+Flask-Login
+Flask-WTF
+python-dotenv
+Werkzeug
+gunicorn
+PyMySQL
+email-validator
+fpdf2

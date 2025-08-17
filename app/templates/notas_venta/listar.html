@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Listado de Notas de Venta</h2>
+        <a href="{{ url_for('main.crear_nota_venta') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Crear Nueva
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <!-- Controles de Paginación -->
+                <form method="get" class="d-flex align-items-center">
+                    <label for="per_page" class="form-label me-2 mb-0">Mostrar:</label>
+                    <select name="per_page" id="per_page" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+                        <option value="20" {% if per_page == 20 %}selected{% endif %}>20</option>
+                        <option value="30" {% if per_page == 30 %}selected{% endif %}>30</option>
+                        <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+                    </select>
+                </form>
+                
+                <!-- FORMULARIO DE BÚSQUEDA EN TIEMPO REAL -->
+                <form method="get" class="d-flex w-50" id="search-form">
+                    <input type="text" name="q" id="search-input" class="form-control" placeholder="Buscar en tiempo real..." value="{{ search_query or '' }}">
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Vehículo</th>
+                            <th>Monto</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for nota in notas.items %}
+                        <tr>
+                            <td>{{ nota.id }}</td>
+                            <td>{{ nota.fecha_venta.strftime('%d-%m-%Y') }}</td>
+                            <td>{{ nota.cliente.nombre }} {{ nota.cliente.apellido }}</td>
+                            <td>{{ nota.vehiculo.marca }} {{ nota.vehiculo.modelo }}</td>
+                            <td>${{ "{:,.0f}".format(nota.monto_final).replace(',', '.') }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if nota.estado == 'completada' %}text-bg-success
+                                    {% elif nota.estado == 'pendiente' %}text-bg-warning
+                                    {% else %}text-bg-danger
+                                    {% endif %}">{{ nota.estado|capitalize }}</span>
+                            </td>
+                            <td>
+                                <a href="{{ url_for('main.editar_nota_venta', id=nota.id) }}" class="btn btn-sm btn-outline-info" title="Editar"><i class="bi bi-pencil"></i></a>
+                                <a href="{{ url_for('main.generar_pdf', id=nota.id) }}" target="_blank" class="btn btn-sm btn-outline-danger" title="Ver PDF"><i class="bi bi-file-earmark-pdf"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#deleteModal{{ nota.id }}" title="Eliminar"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        <!-- Modal de Eliminación -->
+                        <div class="modal fade" id="deleteModal{{ nota.id }}" tabindex="-1">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">Confirmar Eliminación</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                              </div>
+                              <div class="modal-body">
+                                <p>¿Estás seguro de que quieres eliminar la nota de venta #{{ nota.id }}?</p>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <form action="{{ url_for('main.eliminar_nota_venta', id=nota.id) }}" method="post" class="d-inline">
+                                   <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">No se encontraron resultados.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if notas.pages > 1 %}
+            <nav class="mt-3">
+              <ul class="pagination justify-content-center">
+                <!-- PAGINACIÓN ACTUALIZADA -->
+                <li class="page-item {% if not notas.has_prev %}disabled{% endif %}">
+                  <a class="page-link" href="{{ url_for('main.listar_notas_venta', page=notas.prev_num, per_page=per_page, q=search_query) if notas.has_prev else '#' }}">Anterior</a>
+                </li>
+                {% for page_num in notas.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if notas.page == page_num %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('main.listar_notas_venta', page=page_num, per_page=per_page, q=search_query) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not notas.has_next %}disabled{% endif %}">
+                  <a class="page-link" href="{{ url_for('main.listar_notas_venta', page=notas.next_num, per_page=per_page, q=search_query) if notas.has_next else '#' }}">Siguiente</a>
+                </li>
+              </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- SCRIPT PARA BÚSQUEDA EN TIEMPO REAL -->
+    <script>
+        let searchTimeout;
+        const searchInput = document.getElementById('search-input');
+        const searchForm = document.getElementById('search-form');
+
+        searchInput.addEventListener('keyup', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchForm.submit();
+            }, 5000); // Espera 500ms después de que el usuario deja de escribir
+        });
+    </script>
+{% endblock %}
