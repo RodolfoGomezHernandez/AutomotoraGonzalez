@@ -40,16 +40,19 @@
                     </a>
                     <div class="collapse" id="clientes-collapse">
                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ms-4">
+                            <li><a href="{{ url_for('main.listar_clientes') }}" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Listar</a></li>
                             <li><a href="{{ url_for('main.crear_cliente') }}" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Añadir</a></li>
                         </ul>
                     </div>
                 </li>
+
                 <li>
                     <a href="#vehiculos-collapse" class="nav-link link-body-emphasis dropdown-toggle" data-bs-toggle="collapse" aria-expanded="false">
                         <i class="bi bi-truck me-2"></i> Vehículos
                     </a>
                     <div class="collapse" id="vehiculos-collapse">
                         <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small ms-4">
+                            <li><a href="{{ url_for('main.listar_vehiculos') }}" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Listar</a></li>
                             <li><a href="{{ url_for('main.crear_vehiculo') }}" class="link-body-emphasis d-inline-flex text-decoration-none rounded">Añadir</a></li>
                         </ul>
                     </div>

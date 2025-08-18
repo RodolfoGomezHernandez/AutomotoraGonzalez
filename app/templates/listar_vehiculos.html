@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Listado de Vehículos</h2>
+        <a href="{{ url_for('main.crear_vehiculo') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Añadir Nuevo Vehículo
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+             <!-- Formulario de Búsqueda -->
+            <form method="get" class="d-flex w-50 ms-auto mb-3">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar por patente, marca, modelo..." value="{{ search_query or '' }}">
+                <button type="submit" class="btn btn-outline-secondary">Buscar</button>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Patente</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Año</th>
+                            <th>Valor</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vehiculo in vehiculos.items %}
+                        <tr>
+                            <td>{{ vehiculo.patente }}</td>
+                            <td>{{ vehiculo.marca }}</td>
+                            <td>{{ vehiculo.modelo }}</td>
+                            <td>{{ vehiculo.ano }}</td>
+                            <td>${{ "{:,.0f}".format(vehiculo.valor).replace(',', '.') }}</td>
+                            <td>
+                                <a href="{{ url_for('main.editar_vehiculo', patente=vehiculo.patente) }}" class="btn btn-sm btn-outline-info" title="Editar"><i class="bi bi-pencil"></i></a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ vehiculo.patente }}" title="Eliminar"><i class="bi bi-trash"></i></button>
+                            </td>
+                        </tr>
+                        <!-- Modal de Eliminación -->
+                        <div class="modal fade" id="deleteModal{{ vehiculo.patente }}" tabindex="-1">
+                          <div class="modal-dialog">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">Confirmar Eliminación</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                              </div>
+                              <div class="modal-body">
+                                <p>¿Estás seguro de que quieres eliminar el vehículo <strong>{{ vehiculo.marca }} {{ vehiculo.modelo }} ({{ vehiculo.patente }})</strong>?</p>
+                                <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <form action="{{ url_for('main.eliminar_vehiculo', patente=vehiculo.patente) }}" method="post" class="d-inline">
+                                   <button type="submit" class="btn btn-danger">Eliminar</button>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center">No hay vehículos registrados o no se encontraron coincidencias.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if vehiculos.pages > 1 %}
+            <nav class="mt-3">
+              <ul class="pagination justify-content-center">
+                <li class="page-item {% if not vehiculos.has_prev %}disabled{% endif %}">
+                  <a class="page-link" href="{{ url_for('main.listar_vehiculos', page=vehiculos.prev_num, q=search_query) if vehiculos.has_prev else '#' }}">Anterior</a>
+                </li>
+                {% for page_num in vehiculos.iter_pages() %}
+                    {% if page_num %}
+                        <li class="page-item {% if vehiculos.page == page_num %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('main.listar_vehiculos', page=page_num, q=search_query) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not vehiculos.has_next %}disabled{% endif %}">
+                  <a class="page-link" href="{{ url_for('main.listar_vehiculos', page=vehiculos.next_num, q=search_query) if vehiculos.has_next else '#' }}">Siguiente</a>
+                </li>
+              </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
