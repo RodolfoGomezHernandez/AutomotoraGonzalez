@@ -5,7 +5,7 @@ from app.models import User, Cliente, Vehiculo
 from wtforms import IntegerField, TextAreaField
 
 class ClienteForm(FlaskForm):
-    rut = StringField('RUT', validators=[DataRequired(), Length(max=10)])
+    rut = StringField('RUT (ej: 12345678-9)', validators=[DataRequired(), Length(max=12)])
     nombre = StringField('Nombre', validators=[DataRequired(), Length(max=100)])
     apellido = StringField('Apellido', validators=[DataRequired(), Length(max=100)])
     telefono = StringField('Teléfono', validators=[Length(max=15)])
@@ -14,7 +14,13 @@ class ClienteForm(FlaskForm):
     submit = SubmitField('Guardar Cliente')
 
     def validate_rut(self, rut):
-        cliente = Cliente.query.get(rut.data)
+        # Limpia el RUT para la validación y almacenamiento
+        rut_limpio = rut.data.replace(".", "").replace("-", "").lower()
+        if not rut_limpio[:-1].isdigit() or not rut_limpio[-1] in '0123456789k':
+             raise ValidationError('RUT inválido. Use solo números y K si corresponde.')
+        
+        # Valida contra la base de datos usando el RUT limpio
+        cliente = Cliente.query.get(rut_limpio)
         if cliente:
             raise ValidationError('Este RUT ya está registrado.')
 

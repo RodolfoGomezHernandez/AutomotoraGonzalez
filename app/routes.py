@@ -68,53 +68,6 @@ def listar_notas_venta():
         search_query=search_query,
         search_field=search_field
     )
-    page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 20, type=int)
-    search_query = request.args.get('q', '', type=str)
-
-    if per_page not in [20, 30, 50]:
-        per_page = 20
-    
-    query = NotaVenta.query.join(Cliente).join(Vehiculo)
-
-    if search_query:
-        search_term = f"%{search_query}%"
-        
-        # Intentar convertir el término de búsqueda a fecha
-        try:
-            # Asumimos formato dd-mm-yyyy
-            search_date = datetime.datetime.strptime(search_query, '%d-%m-%Y').date()
-        except ValueError:
-            search_date = None
-
-        search_conditions = [
-            cast(NotaVenta.id, String).like(search_term),
-            Cliente.nombre.like(search_term),
-            Cliente.apellido.like(search_term),
-            Cliente.rut.like(search_term),
-            Vehiculo.marca.like(search_term),
-            Vehiculo.modelo.like(search_term),
-            Vehiculo.patente.like(search_term),
-            NotaVenta.estado.like(search_term)
-        ]
-
-        if search_date:
-            search_conditions.append(cast(NotaVenta.fecha_venta, Date) == search_date)
-
-        search_filter = or_(*search_conditions)
-        query = query.filter(search_filter)
-
-    notas_venta = query.order_by(NotaVenta.fecha_venta.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
-    
-    return render_template(
-        'notas_venta/listar.html',
-        title='Notas de Venta',
-        notas=notas_venta,
-        per_page=per_page,
-        search_query=search_query
-    )
 
 
 
@@ -217,28 +170,19 @@ def eliminar_nota_venta(id):
 # Clase personalizada para añadir cabecera y pie de página al PDF
 class PDF(FPDF):
     def header(self):
-        # Logo
         logo_path = os.path.join(os.path.abspath(os.path.dirname(__name__)), 'app', 'static', 'img', 'logo.png')
         if os.path.exists(logo_path):
             self.image(logo_path, 10, 8, 33)
-        # Fuente Arial bold 15
-        self.set_font('Arial', 'B', 15)
-        # Mover a la derecha
-        self.cell(80)
-        # Título
-        self.cell(30, 10, 'Nota de Venta', 0, 0, 'C')
-        # Salto de línea
-        self.ln(20)
+            self.set_font('Arial', 'B', 15)
+            self.cell(80)
+            self.cell(30, 10, 'Nota de Venta', 0, 0, 'C')
+            self.ln(20)
 
     def footer(self):
-        # Posición a 1.5 cm del final
         self.set_y(-15)
-        # Fuente Arial italic 8
         self.set_font('Arial', 'I', 8)
-        # Texto del pie de página
         self.cell(0, 10, f'Página {self.page_no()}', 0, 0, 'C')
         self.cell(0, 10, 'Automotora Gonzalez | Gracias por su compra.', 0, 0, 'R')
-
 
 @bp.route('/notas-venta/pdf/<int:id>')
 @login_required
@@ -257,24 +201,24 @@ def generar_pdf(id):
 
     # --- Datos del Cliente y Vendedor ---
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(95, 10, 'Datos del Cliente', 1, 0, 'C')
-    pdf.cell(95, 10, 'Datos del Vendedor', 1, 1, 'C')
+    pdf.set_fill_color(230, 245, 230) 
+    pdf.cell(95, 10, 'Datos del Cliente', 1, 0, 'C', fill=True)
+    pdf.cell(95, 10, 'Datos del Vendedor', 1, 1, 'C', fill=True)
     
     pdf.set_font('Arial', '', 10)
     pdf.cell(95, 7, f"Nombre: {nota.cliente.nombre} {nota.cliente.apellido}", 1, 0)
     pdf.cell(95, 7, f"Nombre: {nota.vendedor.name}", 1, 1)
-    pdf.cell(95, 7, f"RUT: {nota.cliente.rut}", 1, 0)
+    pdf.cell(95, 7, f"RUT: {nota.cliente.rut_formateado()}", 1, 0)
     pdf.cell(95, 7, f"Email: {nota.vendedor.email}", 1, 1)
     pdf.cell(95, 7, f"Telefono: {nota.cliente.telefono}", 1, 0)
-    pdf.cell(95, 7, "", 1, 1) # Celda vacía para alinear
+    pdf.cell(95, 7, "", 1, 1) 
     
-    # LÍNEA CORREGIDA: Se eliminó el último argumento '0' que causaba el error
     pdf.multi_cell(95, 7, f"Direccion: {nota.cliente.direccion}, {nota.cliente.ciudad}", 1)
     pdf.ln(10)
 
     # --- Detalles del Vehículo ---
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(0, 10, 'Detalles del Vehiculo', 1, 1, 'C')
+    pdf.cell(0, 10, 'Detalles del Vehiculo', 1, 1, 'C', fill=True)
     
     pdf.set_font('Arial', '', 10)
     pdf.cell(95, 7, f"Patente: {nota.vehiculo.patente}", 1, 0)
@@ -282,35 +226,38 @@ def generar_pdf(id):
     pdf.cell(95, 7, f"Ano: {nota.vehiculo.ano}", 1, 0)
     pdf.cell(95, 7, f"N Chasis: {nota.vehiculo.chasis_n}", 1, 1)
     pdf.cell(95, 7, f"N Motor: {nota.vehiculo.motor_n}", 1, 0)
-    pdf.cell(95, 7, "", 1, 1) # Celda vacía para alinear
+    pdf.cell(95, 7, f"Color: {nota.vehiculo.color}", 1, 1)
     pdf.ln(10)
 
     # --- Condiciones de Pago y Total ---
     pdf.set_font('Arial', 'B', 12)
-    pdf.cell(0, 10, 'Condiciones de la Venta', 1, 1, 'C')
+    pdf.cell(0, 10, 'Condiciones de la Venta', 1, 1, 'C', fill=True)
 
     pdf.set_font('Arial', '', 10)
-    pdf.cell(95, 7, f"Metodo de Pago: {nota.pago.metodo_pago.capitalize()}", 1, 1)
+    pdf.cell(0, 7, f"Metodo de Pago: {nota.pago.metodo_pago.capitalize()}", 1, 1)
+    
     pdf.multi_cell(0, 7, f"Observaciones: {nota.observaciones or 'Sin observaciones.'}", 1)
     
     pdf.set_font('Arial', 'B', 14)
     monto_formateado = "${:,.0f}".format(nota.monto_final).replace(',', '.')
     pdf.cell(0, 15, f"Monto Final: {monto_formateado}", 1, 1, 'R')
 
-    # Generar la respuesta para el navegador
     response = make_response(bytes(pdf.output()))
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=nota_venta_{nota.id}.pdf'
     
     return response
 
+
 @bp.route('/clientes/crear', methods=['GET', 'POST'])
 @login_required
 def crear_cliente():
     form = ClienteForm()
     if form.validate_on_submit():
+        # Limpia el RUT antes de guardarlo en la base de datos
+        rut_limpio = form.rut.data.replace(".", "").replace("-", "").lower()
         cliente = Cliente(
-            rut=form.rut.data,
+            rut=rut_limpio, # Guarda el RUT sin formato
             nombre=form.nombre.data,
             apellido=form.apellido.data,
             telefono=form.telefono.data,
@@ -322,6 +269,7 @@ def crear_cliente():
         flash('Cliente añadido con éxito.', 'success')
         return redirect(url_for('main.index'))
     return render_template('crear_editar_simple.html', title='Añadir Nuevo Cliente', form=form)
+
 
 @bp.route('/vehiculos/crear', methods=['GET', 'POST'])
 @login_required

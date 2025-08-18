@@ -32,6 +32,18 @@ class Cliente(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    #FORMATEAR EL RUT
+    def rut_formateado(self):
+        """Devuelve el RUT con formato de puntos y guion."""
+        rut = self.rut.replace(".", "").replace("-", "")
+        if len(rut) < 2:
+            return self.rut
+        cuerpo = rut[:-1]
+        dv = rut[-1]
+        # Formatea el cuerpo del RUT con puntos
+        cuerpo_formateado = f"{int(cuerpo):,}".replace(",", ".")
+        return f"{cuerpo_formateado}-{dv}"
+
 class Vehiculo(db.Model):
     __tablename__ = 'vehiculos'
     patente = db.Column(db.String(8), primary_key=True)
