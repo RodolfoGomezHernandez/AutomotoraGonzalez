@@ -18,7 +18,11 @@ class Config:
         db_pass = os.environ.get('DB_PASS')
         db_name = os.environ.get('DB_NAME')
         db_host = os.environ.get('DB_HOST') # Será una ruta de socket unix
-        SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{db_user}:{db_pass}@{db_host}/{db_name}'
+        # La conexión a Cloud SQL desde App Engine requiere un formato especial
+        SQLALCHEMY_DATABASE_URI = (
+            f'mysql+pymysql://{db_user}:{db_pass}@/{db_name}'
+            f'?unix_socket={db_host}'
+        )
     else:
         # Configuración para la base de datos local
         SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
