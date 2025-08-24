@@ -32,6 +32,9 @@
                     {% endif %}
                     {{ form.submit(class="btn btn-primary w-100") }}
                 </form>
+                <div class="text-center mt-3">
+                    <a href="{{ url_for('auth.reset_password_request') }}">¿Olvidaste tu contraseña?</a>
+                </div>
             </div>
         </div>
     </div>

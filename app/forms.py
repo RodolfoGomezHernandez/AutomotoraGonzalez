@@ -103,4 +103,14 @@ class NotaVentaForm(FlaskForm):
             raise ValidationError('Esta patente de vehículo no existe en la base de datos.')
         if vehiculo.estado != 'disponible':
             raise ValidationError('Este vehículo ya no está disponible para la venta.')
+        
+class ResetPasswordRequestForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    submit = SubmitField('Solicitar Reseteo de Contraseña')
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Nueva Contraseña', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repetir Nueva Contraseña', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Resetear Contraseña')
 
