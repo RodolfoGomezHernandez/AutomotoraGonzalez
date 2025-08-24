@@ -13,18 +13,19 @@ class Config:
 
     # Lógica para la URI de la base de datos
     if os.environ.get('GAE_ENV') == 'standard':
-        # Configuración para producción en Google Cloud SQL
+        # --- CONFIGURACIÓN PARA PRODUCCIÓN EN GOOGLE CLOUD ---
         db_user = os.environ.get('DB_USER')
         db_pass = os.environ.get('DB_PASS')
         db_name = os.environ.get('DB_NAME')
-        db_host = os.environ.get('DB_HOST') # Será una ruta de socket unix
-        # La conexión a Cloud SQL desde App Engine requiere un formato especial
+        db_socket_dir = '/cloudsql'
+        cloud_sql_connection_name = os.environ.get('DB_HOST') # DB_HOST contiene el nombre de conexión
+
         SQLALCHEMY_DATABASE_URI = (
             f'mysql+pymysql://{db_user}:{db_pass}@/{db_name}'
-            f'?unix_socket={db_host}'
+            f'?unix_socket={db_socket_dir}/{cloud_sql_connection_name}'
         )
     else:
-        # Configuración para la base de datos local
+        # --- CONFIGURACIÓN PARA DESARROLLO LOCAL ---
         SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
             'sqlite:///' + os.path.join(basedir, 'app.db')
 
