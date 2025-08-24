@@ -44,6 +44,7 @@ class Cliente(db.Model):
         cuerpo_formateado = f"{int(cuerpo):,}".replace(",", ".")
         return f"{cuerpo_formateado}-{dv}"
 
+
 class Vehiculo(db.Model):
     __tablename__ = 'vehiculos'
     patente = db.Column(db.String(8), primary_key=True)
@@ -55,8 +56,10 @@ class Vehiculo(db.Model):
     motor_n = db.Column(db.String(100), unique=True, nullable=False)
     valor = db.Column(db.Integer, nullable=False)
     descripcion = db.Column(db.Text)
+    estado = db.Column(db.String(20), nullable=False, default='disponible')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 class Pago(db.Model):
     __tablename__ = 'pagos'

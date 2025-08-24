@@ -94,5 +94,12 @@ class NotaVentaForm(FlaskForm):
             raise ValidationError('Este RUT de cliente no existe en la base de datos.')
 
     def validate_vehiculo_patente(self, vehiculo_patente):
-        if not Vehiculo.query.get(vehiculo_patente.data):
+        # --- CÓDIGO CORREGIDO ---
+        # Primero, busca el vehículo y guárdalo en una variable.
+        vehiculo = Vehiculo.query.get(vehiculo_patente.data)
+        
+        # Ahora, comprueba si el vehículo existe.
+        if not vehiculo:
             raise ValidationError('Esta patente de vehículo no existe en la base de datos.')
+        
+
