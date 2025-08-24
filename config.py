@@ -17,13 +17,19 @@ class Config:
         db_user = os.environ.get('DB_USER')
         db_pass = os.environ.get('DB_PASS')
         db_name = os.environ.get('DB_NAME')
-        db_socket_dir = '/cloudsql'
-        cloud_sql_connection_name = os.environ.get('DB_HOST') # DB_HOST contiene el nombre de conexión
+        db_host = os.environ.get('DB_HOST')
 
-        SQLALCHEMY_DATABASE_URI = (
-            f'mysql+pymysql://{db_user}:{db_pass}@/{db_name}'
-            f'?unix_socket={db_socket_dir}/{cloud_sql_connection_name}'
-        )
+        # Si DB_HOST es una ruta de socket (desde App Engine)
+        if db_host and db_host.startswith('/cloudsql'):
+            db_socket_dir = '/cloudsql'
+            cloud_sql_connection_name = db_host.split('/')[-1]
+            SQLALCHEMY_DATABASE_URI = (
+                f'mysql+pymysql://{db_user}:{db_pass}@/{db_name}'
+                f'?unix_socket={db_socket_dir}/{cloud_sql_connection_name}'
+            )
+        # Si DB_HOST es una IP (desde Cloud Shell con Proxy)
+        else:
+            SQLALCHEMY_DATABASE_URI = f'mysql+pymysql://{db_user}:{db_pass}@{db_host}/{db_name}'
     else:
         # --- CONFIGURACIÓN PARA DESARROLLO LOCAL ---
         SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
