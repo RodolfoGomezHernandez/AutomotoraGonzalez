@@ -101,5 +101,6 @@ class NotaVentaForm(FlaskForm):
         # Ahora, comprueba si el vehículo existe.
         if not vehiculo:
             raise ValidationError('Esta patente de vehículo no existe en la base de datos.')
-        
+        if vehiculo.estado != 'disponible':
+            raise ValidationError('Este vehículo ya no está disponible para la venta.')
 

@@ -74,9 +74,9 @@ def crear_nota_venta():
     form = NotaVentaForm()
     if form.validate_on_submit():
         try:
-            # --- LÓGICA DE ELIMINACIÓN ---
+            # La validación ya ocurrió en el form, por lo que podemos proceder
             vehiculo = Vehiculo.query.get(form.vehiculo_patente.data)
-            
+
             pago = Pago(metodo_pago=form.metodo_pago.data, total=form.monto_final.data)
             db.session.add(pago)
             db.session.flush()
@@ -93,13 +93,13 @@ def crear_nota_venta():
             )
             db.session.add(nota)
 
+            # Cambiar estado del vehículo a 'vendido'
             vehiculo.estado = 'vendido'
             db.session.add(vehiculo)
             
             db.session.commit()
             flash('Nota de venta creada. El vehículo ha sido marcado como vendido.', 'success')
             return redirect(url_for('main.listar_notas_venta'))
-            # --- FIN DE LA LÓGICA ---
         except Exception as e:
             db.session.rollback()
             flash(f'Ocurrió un error inesperado: {e}', 'danger')

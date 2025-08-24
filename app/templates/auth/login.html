@@ -10,7 +10,20 @@
                 <form action="" method="post" novalidate>
                     {{ form.hidden_tag() }}
                     {{ render_field(form.email) }}
-                    {{ render_field(form.password) }}
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        <div class="input-group">
+                            {{ form.password(class="form-control", id="password-field") }}
+                            <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                                <i class="bi bi-eye-slash" id="toggle-icon"></i>
+                            </button>
+                        </div>
+                        {% for error in form.password.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    </div>
                     {% if form.remember_me %}
                     <div class="mb-3 form-check">
                         {{ form.remember_me(class="form-check-input") }}
@@ -23,5 +36,26 @@
         </div>
     </div>
 </div>
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordField = document.getElementById('password-field');
+        const toggleIcon = document.getElementById('toggle-icon');
+
+        togglePassword.addEventListener('click', function () {
+            // Cambiar el tipo del input
+            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordField.setAttribute('type', type);
+            
+            // Cambiar el ícono del ojo
+            toggleIcon.classList.toggle('bi-eye');
+            toggleIcon.classList.toggle('bi-eye-slash');
+        });
+    });
+</script>
 {% endblock %}
 
