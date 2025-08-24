@@ -1,0 +1,27 @@
+# app.yaml
+runtime: python312
+entrypoint: gunicorn --workers 3 --bind :$PORT wsgi:app
+
+instance_class: F1
+
+env_variables:
+  SECRET_KEY: 'a98c660217cca7c280d4eab266968ff08ed7c2458baafc13'
+  # --- Configuración de la base de datos (la obtendremos más adelante) ---
+  DB_USER: 'root'
+  DB_PASS: 'Roango2821$'
+  DB_NAME: 'automotora_db'
+  DB_HOST: '/cloudsql/automotoragonzalez:southamerica-west1:automotoragonzalez'
+  # --- Configuración del correo ---
+  MAIL_SERVER: 'smtp.googlemail.com'
+  MAIL_PORT: '587'
+  MAIL_USE_TLS: 'True'
+  MAIL_USERNAME: 'neronl2es@gmail.com'
+  MAIL_PASSWORD: 'tnnq vqee nchi jfdc'
+  ADMINS: 'neronl2es@gmail.com'
+
+handlers:
+- url: /static
+  static_dir: app/static
+
+- url: /.*
+  script: auto

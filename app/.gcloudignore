@@ -1,0 +1,11 @@
+# .gcloudignore
+.gcloudignore
+.gitignore
+.git
+venv/
+env/
+__pycache__/
+*.pyc
+*.db
+*.sqlite3
+.env

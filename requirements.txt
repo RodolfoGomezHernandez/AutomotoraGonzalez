@@ -10,3 +10,4 @@ PyMySQL
 email-validator
 fpdf2
 Flask-Mail
+gunicorn
