@@ -9,27 +9,26 @@
             <form method="POST" action="" novalidate>
                 {{ form.hidden_tag() }}
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        {{ render_field(form.cliente_rut, placeholder="Ej: 12345678-9") }}
+                    <div class="col-md-6">{{ render_field(form.cliente_rut, placeholder="Ej: 12345678-9") }}</div>
+                    <div class="col-md-6">{{ render_field(form.vehiculo_patente, placeholder="Ej: ABCD12") }}</div>
+                    <div class="col-md-6">{{ render_field(form.fecha_venta, type="date") }}</div>
+                    <div class="col-md-6">{{ render_field(form.monto_final, type="number", id="monto_final") }}</div>
+                    <div class="col-md-6">{{ render_field(form.metodo_pago) }}</div>
+                    <div class="col-md-6">{{ render_field(form.estado, id="estado") }}</div>
+                    
+                    <div id="seccion_reserva" class="col-12 mt-3 p-3 bg-dark-subtle rounded" style="display: none;">
+                        <h5 class="text-primary"><i class="bi bi-journal-text"></i> Detalles de la Reserva</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">{{ render_field(form.monto_reserva, type="number", id="monto_reserva") }}</div>
+                            <div class="col-md-6">{{ render_field(form.dias_vigencia, type="number") }}</div>
+                        </div>
+                        <div class="alert alert-info mt-3 fs-5">
+                            <strong>Saldo Pendiente a Pagar: </strong> $<span id="saldo_pendiente">0</span>
+                        </div>
+                        <small class="text-muted">* Las condiciones legales de la reserva se imprimirán automáticamente en el PDF.</small>
                     </div>
-                    <div class="col-md-6">
-                        {{ render_field(form.vehiculo_patente, placeholder="Ej: ABCD12") }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ render_field(form.fecha_venta, type="date") }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ render_field(form.monto_final, type="number") }}
-                    </div>
-                    <div class="col-md-6">
-                        {{ render_field(form.metodo_pago) }}
-                    </div>
-                     <div class="col-md-6">
-                        {{ render_field(form.estado) }}
-                    </div>
-                    <div class="col-12">
-                        {{ render_field(form.observaciones, rows=3) }}
-                    </div>
+
+                    <div class="col-12">{{ render_field(form.observaciones, rows=3) }}</div>
                 </div>
                 <div class="mt-4">
                     {{ form.submit(class='btn btn-primary') }}
@@ -38,4 +37,35 @@
             </form>
         </div>
     </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const estadoSelect = document.getElementById('estado');
+        const seccionReserva = document.getElementById('seccion_reserva');
+        const montoFinalInput = document.getElementById('monto_final');
+        const montoReservaInput = document.getElementById('monto_reserva');
+        const saldoPendienteSpan = document.getElementById('saldo_pendiente');
+
+        function actualizarVista() {
+            // Mostrar u ocultar sección (siempre muestra si hay abono)
+            if (estadoSelect.value === 'reservada' || montoReservaInput.value > 0) {
+                seccionReserva.style.display = 'block';
+            } else {
+                seccionReserva.style.display = 'none';
+                // ELIMINAMOS LA LÍNEA QUE RESTABLECÍA A CERO EL ABONO
+            }
+            
+            // Calcular matemático
+            const montoFinal = parseFloat(montoFinalInput.value) || 0;
+            const montoReserva = parseFloat(montoReservaInput.value) || 0;
+            const saldo = montoFinal - montoReserva;
+            saldoPendienteSpan.innerText = saldo.toLocaleString('es-CL');
+        }
+
+        estadoSelect.addEventListener('change', actualizarVista);
+        montoFinalInput.addEventListener('input', actualizarVista);
+        montoReservaInput.addEventListener('input', actualizarVista);
+        actualizarVista(); // Ejecutar al cargar
+    });
+</script>
 {% endblock %}

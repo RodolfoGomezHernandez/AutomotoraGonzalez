@@ -1,9 +1,163 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="text-center pt-5">
-    <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Automotora Gonzalez" class="img-fluid mb-4" style="max-height: 200px;">
-    <h1 class="display-4">¡Bienvenido, {{ current_user.name }}!</h1>
-    <p class="lead">Sistema de Gestión de Automotora Gonzalez.</p>
+<div class="container-fluid py-2">
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body py-3">
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="fecha_inicio" class="form-label fw-bold mb-1">Fecha Inicio</label>
+                    <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="{{ fecha_inicio }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="fecha_fin" class="form-label fw-bold mb-1">Fecha Fin</label>
+                    <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="{{ fecha_fin }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100"><i class="bi bi-filter"></i> Filtrar Dashboard</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-bg-primary h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Inventario Total</h6>
+                    <h2 class="mb-0">{{ total_vehiculos }} <small class="fs-6 fw-normal">autos</small></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-info h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Disponibles Ahora</h6>
+                    <h2 class="mb-0">{{ disponibles }} <small class="fs-6 fw-normal">autos</small></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-warning h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Vendidos en el Periodo</h6>
+                    <h2 class="mb-0">{{ vendidos }} <small class="fs-6 fw-normal">autos</small></h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-bg-success h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="card-title">Ingreso Real (Ganancia)</h6>
+                    <h2 class="mb-0">{{ ingreso_formateado }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white"><h6 class="mb-0">Cantidad de Ventas por Fecha</h6></div>
+                <div class="card-body" style="position: relative; height:300px;">
+                    <canvas id="chartVentas"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white"><h6 class="mb-0">Ingresos Reales por Fecha ($)</h6></div>
+                <div class="card-body" style="position: relative; height:300px;">
+                    <canvas id="chartIngresos"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white"><h6 class="mb-0">Vehículos Vendidos por Marca</h6></div>
+                <div class="card-body" style="position: relative; height:300px;">
+                    <canvas id="chartMarcas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white"><h6 class="mb-0">Ventas por Tipo de Adquisición</h6></div>
+                <div class="card-body" style="position: relative; height:300px;">
+                    <canvas id="chartAdquisicion"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Datos comunes desde Flask
+        const fechasLabels = {{ fechas_labels | safe }};
+        const commonOptions = { responsive: true, maintainAspectRatio: false };
+
+        // A. Cantidad de Ventas (Líneas)
+        new Chart(document.getElementById('chartVentas'), {
+            type: 'line',
+            data: {
+                labels: fechasLabels,
+                datasets: [{
+                    label: 'N° de Autos Vendidos',
+                    data: {{ grafico_ventas_data | safe }},
+                    borderColor: '#ffc107',
+                    backgroundColor: 'rgba(255, 193, 7, 0.2)',
+                    tension: 0.3, fill: true
+                }]
+            },
+            options: { ...commonOptions, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        });
+
+        // B. Ingresos (Barras)
+        new Chart(document.getElementById('chartIngresos'), {
+            type: 'bar',
+            data: {
+                labels: fechasLabels,
+                datasets: [{
+                    label: 'Ganancia Real ($)',
+                    data: {{ grafico_ingresos_data | safe }},
+                    backgroundColor: '#198754',
+                    borderRadius: 4
+                }]
+            },
+            options: { ...commonOptions }
+        });
+
+        // C. Marcas (Barras horizontales)
+        new Chart(document.getElementById('chartMarcas'), {
+            type: 'bar',
+            data: {
+                labels: {{ marcas_labels | safe }},
+                datasets: [{
+                    label: 'Unidades Vendidas',
+                    data: {{ marcas_data | safe }},
+                    backgroundColor: '#0dcaf0'
+                }]
+            },
+            options: { ...commonOptions, indexAxis: 'y', scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+        });
+
+        // D. Adquisición (Torta)
+        new Chart(document.getElementById('chartAdquisicion'), {
+            type: 'doughnut',
+            data: {
+                labels: {{ adquisicion_labels | safe }},
+                datasets: [{
+                    data: {{ adquisicion_data | safe }},
+                    backgroundColor: ['#6f42c1', '#fd7e14']
+                }]
+            },
+            options: { ...commonOptions, plugins: { legend: { position: 'bottom' } } }
+        });
+    });
+</script>
 {% endblock %}

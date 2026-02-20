@@ -36,8 +36,12 @@
                             <td>{{ vehiculo.modelo }}</td>
                             <td>{{ vehiculo.ano }}</td>
                             <td>${{ "{:,.0f}".format(vehiculo.valor).replace(',', '.') }}</td>
+
                             <td>
                                 <a href="{{ url_for('main.editar_vehiculo', patente=vehiculo.patente) }}" class="btn btn-sm btn-outline-info" title="Editar"><i class="bi bi-pencil"></i></a>
+                                
+                                <a href="{{ url_for('main.generar_pdf_consignacion', patente=vehiculo.patente) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Ver Contrato Consignación"><i class="bi bi-file-earmark-text"></i></a>
+                                
                                 <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ vehiculo.patente }}" title="Eliminar"><i class="bi bi-trash"></i></button>
                             </td>
                         </tr>

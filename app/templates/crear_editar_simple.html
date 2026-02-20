@@ -10,11 +10,15 @@
                 {{ form.hidden_tag() }}
                 <div class="row g-3">
                     {% for field in form if field.widget.input_type != 'hidden' and field.type != 'SubmitField' %}
-                    <div class="col-md-6">
+                    <div class="col-md-6" 
+                        {% if field.name == 'costo_compra' %}id="div_costo_compra"{% endif %}
+                        {% if field.name == 'precio_acordado' %}id="div_precio_acordado"{% endif %}
+                        {% if field.name == 'propietario_rut' %}id="div_propietario_rut"{% endif %}>
                         {{ render_field(field) }}
                     </div>
                     {% endfor %}
                 </div>
+                
                 <div class="mt-4">
                     {{ form.submit(class='btn btn-primary') }}
                     <a href="{{ url_for('main.index') }}" class="btn btn-secondary">Cancelar</a>
@@ -22,4 +26,34 @@
             </form>
         </div>
     </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const tipoSelect = document.getElementById("tipo_adquisicion");
+        const divCosto = document.getElementById("div_costo_compra");
+        const divPrecio = document.getElementById("div_precio_acordado");
+        const divRut = document.getElementById("div_propietario_rut");
+
+        if(tipoSelect) {
+            function toggleCampos() {
+                if (tipoSelect.value === "consignacion") {
+                    if(divCosto) divCosto.style.display = "none";
+                    if(divPrecio) divPrecio.style.display = "block";
+                    if(divRut) divRut.style.display = "block";
+                    
+                    if(divCosto) divCosto.querySelector("input").value = 0;
+                } else {
+                    if(divCosto) divCosto.style.display = "block";
+                    if(divPrecio) divPrecio.style.display = "none";
+                    if(divRut) divRut.style.display = "none";
+
+                    if(divPrecio) divPrecio.querySelector("input").value = 0;
+                    if(divRut) divRut.querySelector("input").value = "";
+                }
+            }
+            tipoSelect.addEventListener("change", toggleCampos);
+            toggleCampos(); 
+        }
+    });
+    </script>
 {% endblock %}

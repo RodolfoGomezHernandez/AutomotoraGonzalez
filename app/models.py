@@ -57,8 +57,6 @@ class Cliente(db.Model):
         # Formatea el cuerpo del RUT con puntos
         cuerpo_formateado = f"{int(cuerpo):,}".replace(",", ".")
         return f"{cuerpo_formateado}-{dv}"
-
-
 class Vehiculo(db.Model):
     __tablename__ = 'vehiculos'
     patente = db.Column(db.String(8), primary_key=True)
@@ -68,12 +66,24 @@ class Vehiculo(db.Model):
     color = db.Column(db.String(30))
     chasis_n = db.Column(db.String(100), unique=True, nullable=False)
     motor_n = db.Column(db.String(100), unique=True, nullable=False)
-    valor = db.Column(db.Integer, nullable=False)
+    valor = db.Column(db.Integer, nullable=False) # Precio de Venta al Público
     descripcion = db.Column(db.Text)
     estado = db.Column(db.String(20), nullable=False, default='disponible')
+    
+    # --- NUEVOS CAMPOS DE CONSIGNACIÓN ---
+    propietario_rut = db.Column(db.String(10), db.ForeignKey('clientes.rut'), nullable=True)
+    kilometraje = db.Column(db.Integer, nullable=True)
+    precio_acordado = db.Column(db.Integer, nullable=True) # Precio que pide el dueño
+    # -------------------------------------
+    
+    tipo_adquisicion = db.Column(db.String(50), nullable=False, default='consignacion')
+    costo_compra = db.Column(db.Integer, nullable=True, default=0) # Lo que pagó la automotora si es propio
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    # Relación para acceder a los datos del dueño fácilmente
+    propietario = db.relationship('Cliente', backref=db.backref('vehiculos_consignados', lazy='dynamic'))
 
 class Pago(db.Model):
     __tablename__ = 'pagos'
@@ -93,7 +103,9 @@ class NotaVenta(db.Model):
     pago_id = db.Column(db.Integer, db.ForeignKey('pagos.id'), unique=True, nullable=False)
     fecha_venta = db.Column(db.Date, nullable=False)
     monto_final = db.Column(db.Integer, nullable=False)
-    estado = db.Column(db.Enum('completada', 'pendiente', 'anulada', name='estado_venta_enum'), default='pendiente', nullable=False)
+    estado = db.Column(db.Enum('completada', 'pendiente', 'anulada', 'reservada', name='estado_venta_enum'), default='pendiente', nullable=False)
+    monto_reserva = db.Column(db.Integer, nullable=True) 
+    dias_vigencia = db.Column(db.Integer, nullable=True)
     observaciones = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

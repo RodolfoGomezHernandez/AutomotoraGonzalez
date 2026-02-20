@@ -1,3 +1,15 @@
+/* Configuración para el tema Azul personalizado */
+[data-bs-theme="blue"] {
+    --bs-body-bg: #0f172a;           /* Fondo principal oscuro/azul */
+    --bs-body-color: #f8fafc;        /* Texto blanco/azulado */
+    --bs-tertiary-bg: #1e293b;       /* Fondo de tarjetas y sidebar */
+    --bs-secondary-bg: #1e293b;
+    --bs-border-color: #334155;      /* Bordes sutiles */
+    --bs-primary: #3b82f6;           /* Botones primarios */
+    --bs-link-color: #60a5fa;        /* Enlaces */
+    --bs-emphasis-color: #f1f5f9;
+}
+
 /* Empuja el contenido principal para que no quede debajo del sidebar */
 .main-content {
     margin-left: 280px;

@@ -1,8 +1,8 @@
-"""Migración inicial de tablas
+"""Estructura inicial limpia
 
-Revision ID: 87e3061e9e2c
+Revision ID: faa585b2e6c7
 Revises: 
-Create Date: 2025-08-03 21:02:42.349059
+Create Date: 2026-02-20 10:23:49.666889
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '87e3061e9e2c'
+revision = 'faa585b2e6c7'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -59,8 +59,15 @@ def upgrade():
     sa.Column('motor_n', sa.String(length=100), nullable=False),
     sa.Column('valor', sa.Integer(), nullable=False),
     sa.Column('descripcion', sa.Text(), nullable=True),
+    sa.Column('estado', sa.String(length=20), nullable=False),
+    sa.Column('propietario_rut', sa.String(length=10), nullable=True),
+    sa.Column('kilometraje', sa.Integer(), nullable=True),
+    sa.Column('precio_acordado', sa.Integer(), nullable=True),
+    sa.Column('tipo_adquisicion', sa.String(length=50), nullable=False),
+    sa.Column('costo_compra', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['propietario_rut'], ['clientes.rut'], ),
     sa.PrimaryKeyConstraint('patente'),
     sa.UniqueConstraint('chasis_n'),
     sa.UniqueConstraint('motor_n')
@@ -73,7 +80,9 @@ def upgrade():
     sa.Column('pago_id', sa.Integer(), nullable=False),
     sa.Column('fecha_venta', sa.Date(), nullable=False),
     sa.Column('monto_final', sa.Integer(), nullable=False),
-    sa.Column('estado', sa.Enum('completada', 'pendiente', 'anulada', name='estado_venta_enum'), nullable=False),
+    sa.Column('estado', sa.Enum('completada', 'pendiente', 'anulada', 'reservada', name='estado_venta_enum'), nullable=False),
+    sa.Column('monto_reserva', sa.Integer(), nullable=True),
+    sa.Column('dias_vigencia', sa.Integer(), nullable=True),
     sa.Column('observaciones', sa.Text(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
