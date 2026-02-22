@@ -10,8 +10,7 @@
 
     <div class="card">
         <div class="card-body">
-             <!-- Formulario de Búsqueda -->
-            <form method="get" class="d-flex w-50 ms-auto mb-3">
+             <form method="get" class="d-flex w-50 ms-auto mb-3">
                 <input type="text" name="q" class="form-control me-2" placeholder="Buscar por patente, marca, modelo..." value="{{ search_query or '' }}">
                 <button type="submit" class="btn btn-outline-secondary">Buscar</button>
             </form>
@@ -42,10 +41,11 @@
                                 
                                 <a href="{{ url_for('main.generar_pdf_consignacion', patente=vehiculo.patente) }}" target="_blank" class="btn btn-sm btn-outline-success" title="Ver Contrato Consignación"><i class="bi bi-file-earmark-text"></i></a>
                                 
+                                <a href="{{ url_for('main.historial_vehiculo', patente=vehiculo.patente) }}" class="btn btn-sm btn-outline-primary" title="Ver Historial"><i class="bi bi-clock-history"></i></a>
+                                
                                 <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ vehiculo.patente }}" title="Eliminar"><i class="bi bi-trash"></i></button>
                             </td>
                         </tr>
-                        <!-- Modal de Eliminación -->
                         <div class="modal fade" id="deleteModal{{ vehiculo.patente }}" tabindex="-1">
                           <div class="modal-dialog">
                             <div class="modal-content">

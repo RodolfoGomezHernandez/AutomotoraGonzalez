@@ -15,7 +15,7 @@
                             <th>Marca</th>
                             <th>Modelo</th>
                             <th>Año</th>
-                            <th>Valor</th>
+                            <th>Valor Base</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -27,17 +27,18 @@
                             <td>{{ vehiculo.modelo }}</td>
                             <td>{{ vehiculo.ano }}</td>
                             <td>${{ "{:,.0f}".format(vehiculo.valor).replace(',', '.') }}</td>
+
                             <td>
                                 <form action="{{ url_for('main.relistar_vehiculo', patente=vehiculo.patente) }}" method="post" class="d-inline">
-                                   <button type="submit" class="btn btn-sm btn-outline-success" title="Poner a la venta nuevamente">
-                                       <i class="bi bi-arrow-counterclockwise"></i> Re-listar
-                                   </button>
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Volver a Disponible" onclick="return confirm('¿Seguro que deseas volver a poner este vehículo a la venta?');"><i class="bi bi-arrow-counterclockwise"></i></button>
                                 </form>
+                                
+                                <a href="{{ url_for('main.historial_vehiculo', patente=vehiculo.patente, origen='vendidos') }}" class="btn btn-sm btn-outline-primary" title="Ver Historial"><i class="bi bi-clock-history"></i></a>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" class="text-center">No hay vehículos vendidos.</td>
+                            <td colspan="6" class="text-center">No hay vehículos vendidos o no se encontraron coincidencias.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -51,9 +52,13 @@
                   <a class="page-link" href="{{ url_for('main.listar_vehiculos_vendidos', page=vehiculos.prev_num) if vehiculos.has_prev else '#' }}">Anterior</a>
                 </li>
                 {% for page_num in vehiculos.iter_pages() %}
-                    <li class="page-item {% if vehiculos.page == page_num %}active{% endif %}">
-                        <a class="page-link" href="{{ url_for('main.listar_vehiculos_vendidos', page=page_num) }}">{{ page_num }}</a>
-                    </li>
+                    {% if page_num %}
+                        <li class="page-item {% if vehiculos.page == page_num %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('main.listar_vehiculos_vendidos', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
                 {% endfor %}
                 <li class="page-item {% if not vehiculos.has_next %}disabled{% endif %}">
                   <a class="page-link" href="{{ url_for('main.listar_vehiculos_vendidos', page=vehiculos.next_num) if vehiculos.has_next else '#' }}">Siguiente</a>

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2><i class="bi bi-car-front"></i> Historial del Vehículo: {{ vehiculo.patente }}</h2>
+    {% if origen == 'notas' %}
+        <a href="{{ url_for('main.listar_notas_venta') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver a Notas de Venta</a>
+    {% elif origen == 'vendidos' %}
+        <a href="{{ url_for('main.listar_vehiculos_vendidos') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver a Vehículos Vendidos</a>
+    {% else %}
+        <a href="{{ url_for('main.listar_vehiculos') }}" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Volver a Vehículos</a>
+    {% endif %}
+</div>
+<hr>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-primary text-white fw-bold">Detalles de Adquisición y Técnicos</div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Marca / Modelo:</strong> {{ vehiculo.marca }} {{ vehiculo.modelo }}</li>
+                    <li class="list-group-item"><strong>Año / Color:</strong> {{ vehiculo.ano }} / {{ vehiculo.color }}</li>
+                    <li class="list-group-item"><strong>Tipo de Adquisición:</strong> 
+                        <span class="badge {% if vehiculo.tipo_adquisicion == 'compra_directa' %}text-bg-success{% else %}text-bg-info{% endif %}">
+                            {{ vehiculo.tipo_adquisicion|replace('_', ' ')|title }}
+                        </span>
+                    </li>
+                    <li class="list-group-item"><strong>Estado Actual:</strong> <span class="badge text-bg-secondary">{{ vehiculo.estado|capitalize }}</span></li>
+                    {% if vehiculo.tipo_adquisicion == 'compra_directa' %}
+                        <li class="list-group-item"><strong>Costo Real de Compra:</strong> ${{ "{:,.0f}".format(vehiculo.costo_compra or 0).replace(',', '.') }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-secondary text-white fw-bold">Datos del Origen / Consignante</div>
+            <div class="card-body">
+                {% if vehiculo.propietario %}
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><strong>Nombre:</strong> {{ vehiculo.propietario.nombre }} {{ vehiculo.propietario.apellido }}</li>
+                    <li class="list-group-item"><strong>RUT:</strong> {{ vehiculo.propietario.rut_formateado() }}</li>
+                    <li class="list-group-item"><strong>Teléfono:</strong> {{ vehiculo.propietario.telefono }}</li>
+                    {% if vehiculo.tipo_adquisicion == 'consignacion' %}
+                        <li class="list-group-item"><strong>Precio Solicitado (Mínimo):</strong> ${{ "{:,.0f}".format(vehiculo.precio_acordado or 0).replace(',', '.') }}</li>
+                    {% endif %}
+                </ul>
+                {% else %}
+                <div class="alert alert-warning mt-3">No hay un propietario registrado para este origen.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-dark text-white fw-bold">Bitácora de Eventos</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Descripción del Evento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in registros %}
+                    <tr>
+                        <td style="width: 25%;">{{ reg.fecha.strftime('%d-%m-%Y %H:%M') }}</td>
+                        <td>{{ reg.descripcion }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="2" class="text-center py-4 text-muted">Aún no hay eventos registrados para este vehículo.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

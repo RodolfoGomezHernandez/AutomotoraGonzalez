@@ -71,7 +71,7 @@
                             <td>{{ nota.vehiculo.modelo if nota.vehiculo else 'N/A' }}</td>
                             
                             <td>${{ "{:,.0f}".format(nota.monto_final).replace(',', '.') }}</td>
-                            
+                       
                             <td>
                                 <span class="badge 
                                     {% if nota.estado == 'completada' %}text-bg-success
@@ -84,10 +84,15 @@
                             
                             <td>
                                 <a href="{{ url_for('main.editar_nota_venta', id=nota.id) }}" class="btn btn-sm btn-outline-info" title="Editar"><i class="bi bi-pencil"></i></a>
+                                
                                 <a href="{{ url_for('main.generar_pdf', id=nota.id) }}" target="_blank" class="btn btn-sm btn-outline-danger" title="Ver PDF Original"><i class="bi bi-file-earmark-pdf"></i></a>
                                 
                                 {% if nota.estado == 'anulada' and nota.monto_reserva and nota.monto_reserva > 0 %}
                                 <a href="{{ url_for('main.generar_pdf_devolucion', id=nota.id) }}" target="_blank" class="btn btn-sm btn-outline-warning" title="Ver Comprobante de Devolución"><i class="bi bi-arrow-return-left"></i></a>
+                                {% endif %}
+                                
+                                {% if nota.vehiculo %}
+                                    <a href="{{ url_for('main.historial_vehiculo', patente=nota.vehiculo.patente, origen='notas') }}" class="btn btn-sm btn-outline-primary" title="Historial del Vehículo"><i class="bi bi-clock-history"></i></a>
                                 {% endif %}
                                 
                                 <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#deleteModal{{ nota.id }}" title="Eliminar"><i class="bi bi-trash"></i></button>

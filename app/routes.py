@@ -8,7 +8,7 @@ import os
 from datetime import date, datetime
 from .models import NotaVenta, Cliente, Vehiculo, Pago
 from .forms import NotaVentaForm, ClienteForm, VehiculoForm
-
+from .models import RegistroHistorial
 bp = Blueprint('main', __name__)
 
 # --- DASHBOARD ---
@@ -174,7 +174,12 @@ def crear_nota_venta():
 
             vehiculo.estado = 'reservado' if form.estado.data == 'reservada' else 'vendido'
             db.session.add(vehiculo)
-            
+            db.session.flush() # Para obtener el ID de la nota recién creada
+            evento = RegistroHistorial(
+                vehiculo_patente=vehiculo.patente, 
+                descripcion=f"Se creó la Nota de Venta #{nota.id} en estado '{form.estado.data}'."
+            )
+            db.session.add(evento)
             db.session.commit()
             flash('Nota de venta creada exitosamente.', 'success')
             return redirect(url_for('main.listar_notas_venta'))
@@ -193,6 +198,9 @@ def editar_nota_venta(id):
     if form.validate_on_submit():
         try:
             vehiculo = Vehiculo.query.get(form.vehiculo_patente.data)
+
+            # 1. Guardar el estado antiguo
+            estado_antiguo = nota.estado
 
             nota.cliente_rut = form.cliente_rut.data
             nota.vehiculo_patente = form.vehiculo_patente.data
@@ -216,6 +224,14 @@ def editar_nota_venta(id):
                 vehiculo.estado = 'reservado'
             elif form.estado.data == 'pendiente':
                 vehiculo.estado = 'vendido'
+
+            # 2. Registrar en la bitácora si hubo cambio de estado
+            if estado_antiguo != form.estado.data:
+                evento = RegistroHistorial(
+                    vehiculo_patente=vehiculo.patente, 
+                    descripcion=f"Nota de Venta #{nota.id} cambió de '{estado_antiguo}' a '{form.estado.data}'."
+                )
+                db.session.add(evento)
 
             db.session.commit()
             flash('Nota de venta actualizada con éxito.', 'success')
@@ -464,13 +480,20 @@ def generar_pdf(id):
     pdf.cell(95, 10, 'Datos del Vendedor', 1, 1, 'C', fill=True)
     
     pdf.set_font('Arial', '', 10)
-    pdf.cell(95, 7, f"Nombre: {nota.cliente.nombre} {nota.cliente.apellido}", 1, 0)
+    
+    # --- VARIABLES PROTEGIDAS ---
+    nombre_cliente = f"{nota.cliente.nombre} {nota.cliente.apellido}" if nota.cliente else "Cliente Borrado"
+    rut_cliente = nota.cliente.rut_formateado() if nota.cliente else "N/A"
+    telefono_cliente = nota.cliente.telefono if nota.cliente else "N/A"
+    direccion_cliente = f"{nota.cliente.direccion}, {nota.cliente.ciudad}" if nota.cliente else "N/A"
+
+    pdf.cell(95, 7, f"Nombre: {nombre_cliente}", 1, 0)
     pdf.cell(95, 7, f"Nombre: {nota.vendedor.name}", 1, 1)
-    pdf.cell(95, 7, f"RUT: {nota.cliente.rut_formateado()}", 1, 0)
+    pdf.cell(95, 7, f"RUT: {rut_cliente}", 1, 0)
     pdf.cell(95, 7, f"Email: {nota.vendedor.email}", 1, 1)
-    pdf.cell(95, 7, f"Telefono: {nota.cliente.telefono}", 1, 0)
+    pdf.cell(95, 7, f"Telefono: {telefono_cliente}", 1, 0)
     pdf.cell(95, 7, "", 1, 1) 
-    pdf.cell(0, 7, f"Direccion: {nota.cliente.direccion}, {nota.cliente.ciudad}", 1, 1)
+    pdf.cell(0, 7, f"Direccion: {direccion_cliente}", 1, 1)
     pdf.ln(5)
 
     pdf.set_font('Arial', 'B', 12)
@@ -582,14 +605,22 @@ def generar_pdf_devolucion(id):
     
     pdf.set_font('Arial', '', 12)
     pdf.cell(0, 8, f"Folio Original: #{nota.id}", 0, 1)
-    pdf.cell(0, 8, f"Fecha de Emision: {datetime.datetime.now().strftime('%d-%m-%Y')}", 0, 1)
+    # CORRECCIÓN: Solo datetime.now()
+    pdf.cell(0, 8, f"Fecha de Emision: {datetime.now().strftime('%d-%m-%Y')}", 0, 1)
     pdf.ln(5)
     
     pdf.set_font('Arial', 'B', 12)
     pdf.cell(0, 10, 'Datos del Cliente y Vehiculo', 1, 1, 'C', fill=True)
     pdf.set_font('Arial', '', 11)
-    pdf.cell(0, 8, f"Cliente: {nota.cliente.nombre} {nota.cliente.apellido} (RUT: {nota.cliente.rut_formateado()})", 1, 1)
-    pdf.cell(0, 8, f"Vehiculo: {nota.vehiculo.marca} {nota.vehiculo.modelo} (Patente: {nota.vehiculo.patente})", 1, 1)
+
+    # PROTECCIÓN: Variables seguras
+    nombre_cliente = f"{nota.cliente.nombre} {nota.cliente.apellido}" if nota.cliente else "Cliente Borrado"
+    rut_cliente = nota.cliente.rut_formateado() if nota.cliente else "N/A"
+    marca_modelo = f"{nota.vehiculo.marca} {nota.vehiculo.modelo}" if nota.vehiculo else "N/A"
+    patente = nota.vehiculo.patente if nota.vehiculo else "N/A"
+
+    pdf.cell(0, 8, f"Cliente: {nombre_cliente} (RUT: {rut_cliente})", 1, 1)
+    pdf.cell(0, 8, f"Vehiculo: {marca_modelo} (Patente: {patente})", 1, 1)
     pdf.ln(5)
     
     pdf.set_font('Arial', 'B', 12)
@@ -719,3 +750,15 @@ def generar_pdf_consignacion(patente):
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = f'inline; filename=consignacion_{vehiculo.patente}.pdf'
     return response
+
+
+@bp.route('/vehiculos/historial/<patente>')
+@login_required
+def historial_vehiculo(patente):
+    vehiculo = Vehiculo.query.get_or_404(patente)
+    registros = vehiculo.registros.all() 
+    
+    # Capturamos de dónde viene (por defecto será 'vehiculos')
+    origen = request.args.get('origen', 'vehiculos') 
+    
+    return render_template('historial_vehiculo.html', title=f'Historial: {vehiculo.patente}', vehiculo=vehiculo, registros=registros, origen=origen)

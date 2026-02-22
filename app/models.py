@@ -115,3 +115,16 @@ class NotaVenta(db.Model):
     vehiculo = db.relationship('Vehiculo', backref=db.backref('notas_venta', lazy='dynamic'))
     vendedor = db.relationship('User', backref=db.backref('notas_venta', lazy='dynamic'))
     pago = db.relationship('Pago', uselist=False, backref=db.backref('nota_venta', lazy=True))
+
+
+
+
+class RegistroHistorial(db.Model):
+    __tablename__ = 'registro_historial'
+    id = db.Column(db.Integer, primary_key=True)
+    vehiculo_patente = db.Column(db.String(10), db.ForeignKey('vehiculos.patente'), nullable=False)
+    fecha = db.Column(db.DateTime, default=datetime.now)
+    descripcion = db.Column(db.String(255), nullable=False)
+    
+    # Relación inversa (permite llamar vehiculo.registros)
+    vehiculo = db.relationship('Vehiculo', backref=db.backref('registros', lazy='dynamic', order_by='RegistroHistorial.fecha.desc()'))
