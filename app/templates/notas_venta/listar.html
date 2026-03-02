@@ -73,13 +73,19 @@
                             <td>${{ "{:,.0f}".format(nota.monto_final).replace(',', '.') }}</td>
                        
                             <td>
-                                <span class="badge 
-                                    {% if nota.estado == 'completada' %}text-bg-success
-                                    {% elif nota.estado == 'reservada' %}text-bg-info
-                                    {% elif nota.estado == 'pendiente' %}text-bg-warning
-                                    {% else %}text-bg-danger
-                                    {% endif %}">{{ nota.estado|capitalize }}
-                                </span>
+                                {% if nota.estado and nota.estado.strip() != '' %}
+                                    {% set estado_limpio = nota.estado|lower %}
+                                    <span class="badge 
+                                        {% if estado_limpio == 'completada' %}text-bg-success
+                                        {% elif estado_limpio == 'reservada' %}text-bg-info
+                                        {% elif estado_limpio == 'pendiente' %}text-bg-warning
+                                        {% elif estado_limpio == 'anulada' %}text-bg-danger
+                                        {% else %}text-bg-secondary{% endif %}">
+                                        {{ nota.estado|capitalize }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge text-bg-secondary">Sin Estado</span>
+                                {% endif %}
                             </td>
                             
                             <td>

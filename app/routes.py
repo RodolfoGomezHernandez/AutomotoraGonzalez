@@ -132,8 +132,10 @@ def listar_notas_venta():
                 NotaVenta.estado.like(search_term)
             ))
 
-    notas = query.order_by(NotaVenta.fecha_venta.desc()).paginate(
+    # Ordenamos por el ID de mayor a menor para garantizar la secuencia de ingreso real
+    notas = query.order_by(NotaVenta.id.desc()).paginate(
         page=page, per_page=per_page, error_out=False
+    
     )
     
     return render_template(
@@ -359,8 +361,27 @@ def listar_vehiculos():
 @login_required
 def listar_vehiculos_vendidos():
     page = request.args.get('page', 1, type=int)
-    vehiculos = Vehiculo.query.filter_by(estado='vendido').order_by(Vehiculo.marca).paginate(page=page, per_page=15, error_out=False)
-    return render_template('listar_vehiculos_vendidos.html', title='Historial de Vehículos Vendidos', vehiculos=vehiculos)
+    search = request.args.get('search', '')
+
+    # Empezar la consulta solo con los vendidos
+    query = Vehiculo.query.filter_by(estado='vendido')
+
+    # Si hay texto en el buscador, filtrar
+    if search:
+        query = query.filter(
+            (Vehiculo.patente.ilike(f'%{search}%')) |
+            (Vehiculo.marca.ilike(f'%{search}%')) |
+            (Vehiculo.modelo.ilike(f'%{search}%'))
+        )
+
+    # Ordenar por fecha de creación (del más reciente al más antiguo)
+    vehiculos = query.order_by(Vehiculo.created_at.desc()).paginate(page=page, per_page=15, error_out=False)
+    
+    
+    # Agregamos search=search al final
+    return render_template('listar_vehiculos_vendidos.html', title='Historial de Vehículos Vendidos', vehiculos=vehiculos, search=search)
+
+
 
 @bp.route('/vehiculos/relistar/<patente>', methods=['POST'])
 @login_required
