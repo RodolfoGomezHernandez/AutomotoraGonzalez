@@ -43,6 +43,7 @@
                             <th>Marca</th>
                             <th>Modelo</th>
                             <th>Monto</th>
+                            <th>Fecha</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
@@ -69,7 +70,7 @@
                             <td>{{ nota.vehiculo.patente if nota.vehiculo else 'N/A' }}</td>
                             <td>{{ nota.vehiculo.marca if nota.vehiculo else 'N/A' }}</td>
                             <td>{{ nota.vehiculo.modelo if nota.vehiculo else 'N/A' }}</td>
-                            
+                            <td>{{ nota.fecha_venta.strftime('%d-%m-%Y') }}</td> <td>${{ "{:,.0f}".format(nota.monto_final).replace(',', '.') }}</td>
                             <td>${{ "{:,.0f}".format(nota.monto_final).replace(',', '.') }}</td>
                        
                             <td>
