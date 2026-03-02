@@ -261,15 +261,30 @@ def editar_nota_venta(id):
 def eliminar_nota_venta(id):
     nota = db.session.get(NotaVenta, id) or abort(404)
     try:
+        vehiculo = nota.vehiculo
         pago = nota.pago
+
+        # 1. Liberar el vehículo si existe
+        if vehiculo:
+            vehiculo.estado = 'disponible'
+            # Dejar constancia del borrado en el historial
+            evento = RegistroHistorial(
+                vehiculo_patente=vehiculo.patente,
+                descripcion=f"Nota de Venta #{nota.id} fue eliminada. Vehículo vuelve a estado 'disponible'."
+            )
+            db.session.add(evento)
+
+        # 2. Borrar la nota y el pago
         db.session.delete(nota)
         if pago:
             db.session.delete(pago)
+            
         db.session.commit()
-        flash('Nota de venta eliminada con éxito.', 'success')
+        flash('Nota de venta eliminada. El vehículo ha vuelto a la lista de disponibles.', 'success')
     except Exception as e:
         db.session.rollback()
         flash(f'Error al eliminar la nota de venta: {e}', 'danger')
+        
     return redirect(url_for('main.listar_notas_venta'))
 
 # --- RUTAS DE CLIENTES ---
@@ -455,12 +470,24 @@ def editar_vehiculo(patente):
 @login_required
 def eliminar_vehiculo(patente):
     vehiculo = Vehiculo.query.get_or_404(patente)
+    
     if vehiculo.notas_venta.first():
         flash('No se puede eliminar un vehículo con notas de venta asociadas.', 'danger')
         return redirect(url_for('main.listar_vehiculos'))
-    db.session.delete(vehiculo)
-    db.session.commit()
-    flash('Vehículo eliminado con éxito.', 'success')
+        
+    try:
+        # 1. Eliminar todo el historial asociado a este vehículo primero
+        for registro in vehiculo.registros.all():
+            db.session.delete(registro)
+            
+        # 2. Ahora sí, eliminar el vehículo
+        db.session.delete(vehiculo)
+        db.session.commit()
+        flash('Vehículo y su historial eliminados con éxito.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error al eliminar el vehículo: {e}', 'danger')
+        
     return redirect(url_for('main.listar_vehiculos'))
 
 # --- RUTAS DE PDF ---
